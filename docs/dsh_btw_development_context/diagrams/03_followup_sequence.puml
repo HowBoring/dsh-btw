@@ -1,0 +1,34 @@
+@startuml
+' Follow-up must refresh main context
+skinparam shadowing false
+autonumber
+actor User
+participant "BTW History Panel" as UI
+participant "BtwRemote" as Remote
+participant "BtwCoordinator" as Coord
+participant "Main Context Snapshot" as Capture
+participant "Topic Repository" as Repo
+participant "Side LLM" as LLM
+
+User -> UI : select Topic A; press Follow
+UI -> Remote : ask(sessionId, topicId=A, Q2, requestId)
+Remote -> Coord : authorize and reserve
+Coord -> Capture : capture current main @ t2
+Capture --> Coord : ContextCut t2 (new since Q1)
+Coord -> Repo : load Topic A at revision R
+Repo --> Coord : Q1/A1, status complete
+Coord -> Coord : assemble Main(t2) + Q1/A1 + Q2
+Coord -> Repo : compare revision; append Q2 running
+Repo --> Coord : durable new revision R+1
+Coord -> LLM : independent side request
+Coord --> UI : admitted
+LLM --> UI : watch streamed answer A2
+LLM --> Coord : settled answer
+Coord -> Repo : persist A2 complete
+Repo --> Coord : durable
+Coord --> UI : settled Topic A
+note over Coord,LLM
+  No Topic B history.
+  Main context is NOT frozen at t1.
+end note
+@enduml

@@ -1,0 +1,28 @@
+@startuml
+' State machine per BTW turn; Topic remains for follow-up
+skinparam shadowing false
+hide empty description
+[*] --> Admission
+Admission --> Running : durable persist-first checkpoint
+Admission --> Rejected : validation / busy / storage error
+Admission --> Cancelled : cancel while committing\n(no model call)
+Rejected --> [*]
+Running --> Complete : model finished + durable terminal
+Running --> Cancelled : explicit BTW cancel + terminal
+Running --> Error : provider failure + terminal
+Running --> Interrupted : Host crash / stale owner repair
+Complete --> [*]
+Cancelled --> [*]
+Error --> [*]
+Interrupted --> [*]
+
+note right of Complete
+  A future follow-up creates a NEW
+  BTW Turn under the SAME Topic.
+  It does not reopen this terminal Turn.
+end note
+note right of Running
+  Per Session: at most one active Turn.
+  Reader disconnect != cancellation.
+end note
+@enduml

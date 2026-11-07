@@ -1,0 +1,48 @@
+@startuml
+' New BTW admission and concurrent execution
+skinparam shadowing false
+autonumber
+actor User
+participant "Web BTW Panel" as UI
+participant "BtwRemote" as Remote
+participant "BtwCoordinator" as Coord
+participant "LiveContextMirror" as Mirror
+database "Main Session Log" as Log
+participant "BtwTopicRepository" as Repo
+participant "Independent Side LLM" as Side
+participant "Main ReactLoopAgent" as Main
+
+Main -> Log : commit earlier tool results / events
+Main -> Mirror : streaming Assistant chunk 1
+Main -> Mirror : streaming Assistant chunk 2
+User -> UI : /btw Why this design?
+UI -> Remote : ask(sessionId, requestId, question)
+Remote -> Coord : authorize + singleflight reservation
+note over Coord
+  No await before ContextCut capture.
+end note
+Coord -> Log : snapshot committed events @ seq S
+Coord -> Mirror : copy Attempt @ (id, revision, index=2)
+Mirror --> Coord : partial Assistant + request facts
+Coord -> Coord : freeze ContextCut
+Coord -> Repo : persist Topic + Turn(running)
+Repo --> Coord : durable receipt
+Coord -> Side : detach independent request
+Coord --> Remote : receipt(topicId, turnId)
+Remote --> UI : admitted
+par Primary ReAct continues
+  Main -> Mirror : chunk 3 etc.
+  Main -> Log : further assistant/tool events
+and Side request progresses
+  Side --> Coord : BTW text delta
+  Coord --> UI : watch(delta)
+  Side --> Coord : completion
+  Coord -> Repo : persist complete answer
+  Repo --> Coord : durable
+  Coord --> UI : watch(settled)
+end
+note over Main,Side
+  No primary Inbox mutation,
+  no side tool execution.
+end note
+@enduml

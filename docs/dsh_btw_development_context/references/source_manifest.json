@@ -1,0 +1,48 @@
+{
+  "as_of_date": "2026-11-07",
+  "purpose": "Verifiable source anchors for an OMP-style DSH BTW design, not executable upstream imports",
+  "repositories": {
+    "omp": {
+      "repo": "can1357/oh-my-pi",
+      "ref": "f2b795ba747b23d42052184d822b41e3d01357cc",
+      "commit_date_utc": "2026-11-07T02:27:29Z",
+      "files": [
+        { "path": "docs/slash-command-internals.md", "lines": "316-415", "symbols": ["/btw", "Follow", "Session BTW history", "per-topic lease"], "url": "https://github.com/can1357/oh-my-pi/blob/f2b795ba747b23d42052184d822b41e3d01357cc/docs/slash-command-internals.md#L316-L415" },
+        { "path": "packages/coding-agent/src/session/agent-session.ts", "lines": "13169-13410", "symbols": ["runEphemeralTurn", "buildEphemeralSnapshot", "streamMessage"], "url": "https://github.com/can1357/oh-my-pi/blob/f2b795ba747b23d42052184d822b41e3d01357cc/packages/coding-agent/src/session/agent-session.ts#L13169-L13410" },
+        { "path": "packages/coding-agent/src/session/btw-turn.ts", "lines": "21-119", "symbols": ["beginBtwTurn", "runBtwTurn"], "url": "https://github.com/can1357/oh-my-pi/blob/f2b795ba747b23d42052184d822b41e3d01357cc/packages/coding-agent/src/session/btw-turn.ts#L21-L119" },
+        { "path": "packages/coding-agent/src/session/btw-history.ts", "lines": "18-259", "symbols": ["BtwHistoryStore", "upsert", "per-topic lock", "revision check"], "url": "https://github.com/can1357/oh-my-pi/blob/f2b795ba747b23d42052184d822b41e3d01357cc/packages/coding-agent/src/session/btw-history.ts#L18-L259" },
+        { "path": "packages/coding-agent/src/modes/controllers/btw-controller.ts", "lines": "542-875", "symbols": ["startFollowUp", "start", "runRequest"], "url": "https://github.com/can1357/oh-my-pi/blob/f2b795ba747b23d42052184d822b41e3d01357cc/packages/coding-agent/src/modes/controllers/btw-controller.ts#L542-L875" },
+        { "path": "packages/coding-agent/src/modes/rpc/rpc-btw.ts", "lines": "1-260", "symbols": ["ask", "cancel", "history", "btw_delta", "btw_record"], "url": "https://github.com/can1357/oh-my-pi/blob/f2b795ba747b23d42052184d822b41e3d01357cc/packages/coding-agent/src/modes/rpc/rpc-btw.ts" },
+        { "path": "packages/tui/src/overlays/btw-history-panel.ts", "symbols": ["BtwHistoryPanel", "openFollowUp", "showRecord"], "url": "https://github.com/can1357/oh-my-pi/blob/f2b795ba747b23d42052184d822b41e3d01357cc/packages/tui/src/overlays/btw-history-panel.ts" },
+        { "path": "packages/coding-agent/src/prompts/system/btw-user.md", "symbols": ["ephemeral BTW prompt", "no tools", "optional inject"], "url": "https://github.com/can1357/oh-my-pi/blob/f2b795ba747b23d42052184d822b41e3d01357cc/packages/coding-agent/src/prompts/system/btw-user.md" },
+        { "path": "docs/rpc.md", "symbols": ["Side questions (/btw)", "get_btw_history"], "url": "https://github.com/can1357/oh-my-pi/blob/f2b795ba747b23d42052184d822b41e3d01357cc/docs/rpc.md" }
+      ]
+    },
+    "dsh": {
+      "repo": "deepseek-ai/deepseek-harness",
+      "ref": "fcc0ad462172522aaf5c93a7b2e01f6b9f0b0159",
+      "commit_date_utc": "2026-11-04T08:40:00Z",
+      "compatibility_ref": "dsh-v0.2.1-rc.2",
+      "files": [
+        { "path": "packages/core/session/README.md", "symbols": ["Session.deriveMessages", "append-only log"], "url": "https://github.com/deepseek-ai/deepseek-harness/blob/fcc0ad462172522aaf5c93a7b2e01f6b9f0b0159/packages/core/session/README.md" },
+        { "path": "packages/core/agent/src/runtime-types.ts", "lines": "154-189,399", "symbols": ["AssistantStreamFrame", "agent/assistant-stream"], "url": "https://github.com/deepseek-ai/deepseek-harness/blob/fcc0ad462172522aaf5c93a7b2e01f6b9f0b0159/packages/core/agent/src/runtime-types.ts" },
+        { "path": "packages/core/agent-loop/src/assistant-stream.ts", "lines": "17-141", "symbols": ["AssistantStreamAttempt"], "url": "https://github.com/deepseek-ai/deepseek-harness/blob/fcc0ad462172522aaf5c93a7b2e01f6b9f0b0159/packages/core/agent-loop/src/assistant-stream.ts#L17-L141" },
+        { "path": "packages/llm/llm/src/call-config.ts", "symbols": ["isAgentLoopRequest"], "url": "https://github.com/deepseek-ai/deepseek-harness/blob/fcc0ad462172522aaf5c93a7b2e01f6b9f0b0159/packages/llm/llm/src/call-config.ts" },
+        { "path": "packages/llm/llm/src/assembler.ts", "lines": "150-180", "symbols": ["BlockAssembler.interruptedBlocks"], "url": "https://github.com/deepseek-ai/deepseek-harness/blob/fcc0ad462172522aaf5c93a7b2e01f6b9f0b0159/packages/llm/llm/src/assembler.ts#L150-L180" },
+        { "path": "packages/llm/llm/src/index.ts", "symbols": ["llm/stream", "prepareCall", "stream"], "url": "https://github.com/deepseek-ai/deepseek-harness/blob/fcc0ad462172522aaf5c93a7b2e01f6b9f0b0159/packages/llm/llm/src/index.ts" },
+        { "path": "packages/llm/llm/src/types.ts", "symbols": ["GenerateOptions", "LlmRequestPurposeMap"], "url": "https://github.com/deepseek-ai/deepseek-harness/blob/fcc0ad462172522aaf5c93a7b2e01f6b9f0b0159/packages/llm/llm/src/types.ts" },
+        { "path": "packages/session/session-title-llm/src/index.ts", "lines": "256-290", "symbols": ["one-shot model call example"], "url": "https://github.com/deepseek-ai/deepseek-harness/blob/fcc0ad462172522aaf5c93a7b2e01f6b9f0b0159/packages/session/session-title-llm/src/index.ts#L256-L290" },
+        { "path": "packages/storage/storage-domain/README.md", "symbols": ["schema validated Domain", "non-session data"], "url": "https://github.com/deepseek-ai/deepseek-harness/blob/fcc0ad462172522aaf5c93a7b2e01f6b9f0b0159/packages/storage/storage-domain/README.md" },
+        { "path": "packages/storage/storage-domain/src/domain.ts", "lines": "38-107", "symbols": ["KvTable", "update", "put", "delete"], "url": "https://github.com/deepseek-ai/deepseek-harness/blob/fcc0ad462172522aaf5c93a7b2e01f6b9f0b0159/packages/storage/storage-domain/src/domain.ts#L38-L107" },
+        { "path": "packages/storage/storage-json/README.md", "lines": "139-145", "symbols": ["no cross-process locking"], "url": "https://github.com/deepseek-ai/deepseek-harness/blob/fcc0ad462172522aaf5c93a7b2e01f6b9f0b0159/packages/storage/storage-json/README.md#L139-L145" },
+        { "path": "packages/interaction/commands/src/index.ts", "lines": "333-430", "symbols": ["command/run", "command/done", "commands.execute"], "url": "https://github.com/deepseek-ai/deepseek-harness/blob/fcc0ad462172522aaf5c93a7b2e01f6b9f0b0159/packages/interaction/commands/src/index.ts#L333-L430" },
+        { "path": "packages/client/ui-input-trigger/src/types.ts", "lines": "149-242", "symbols": ["InputTriggerSource.matchEnter", "onPick"], "url": "https://github.com/deepseek-ai/deepseek-harness/blob/fcc0ad462172522aaf5c93a7b2e01f6b9f0b0159/packages/client/ui-input-trigger/src/types.ts#L149-L242" },
+        { "path": "packages/client/ui-commands/src/client/contract.ts", "lines": "77-148", "symbols": ["CommandUiContract", "ActionSpec", "decorate"], "url": "https://github.com/deepseek-ai/deepseek-harness/blob/fcc0ad462172522aaf5c93a7b2e01f6b9f0b0159/packages/client/ui-commands/src/client/contract.ts#L77-L148" },
+        { "path": "docs/api-gateway.md", "lines": "7-135", "symbols": ["@Remote", "@Remote({ mode: 'stream' })", "generated Client"], "url": "https://github.com/deepseek-ai/deepseek-harness/blob/fcc0ad462172522aaf5c93a7b2e01f6b9f0b0159/docs/api-gateway.md" },
+        { "path": "packages/api/remote-access/README.md", "symbols": ["Session access authorization"], "url": "https://github.com/deepseek-ai/deepseek-harness/blob/fcc0ad462172522aaf5c93a7b2e01f6b9f0b0159/packages/api/remote-access/README.md" },
+        { "path": "packages/session/session-persistence-jsonl/README.md", "symbols": ["per-session directory", "durable Session event log"], "url": "https://github.com/deepseek-ai/deepseek-harness/blob/fcc0ad462172522aaf5c93a7b2e01f6b9f0b0159/packages/session/session-persistence-jsonl/README.md" },
+        { "path": "packages/bundle/base/cordis.patch.yml", "lines": "175-190", "symbols": ["storage", "storage-json", "storage-domain"], "url": "https://github.com/deepseek-ai/deepseek-harness/blob/fcc0ad462172522aaf5c93a7b2e01f6b9f0b0159/packages/bundle/base/cordis.patch.yml#L175-L190" }
+      ]
+    }
+  }
+}

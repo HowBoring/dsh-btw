@@ -1,0 +1,76 @@
+@startuml
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+top to bottom direction
+
+class BtwTopic {
+  +sessionId: string
+  +topicId: string
+  +title: string
+  +revision: number
+  +turns: BtwTurn[]
+  +createdAt: number
+  +updatedAt: number
+}
+
+class BtwTurn {
+  +turnId: string
+  +requestId: string
+  +question: string
+  +answer: string
+  +status: BtwTurnStatus
+  +cut: ContextCut
+}
+
+class ContextCut {
+  +sessionId: string
+  +eventSeq: number
+  +attemptId?: string
+  +attemptRevision?: number
+  +chunkIndex?: number
+  +capturedAt: number
+}
+
+enum BtwTurnStatus {
+  running
+  complete
+  cancelled
+  error
+  interrupted
+}
+
+interface BtwTopicRepository {
+  +get(sessionId, topicId)
+  +list(sessionId)
+  +appendTurnCAS(...)
+  +settleTurnCAS(...)
+}
+
+class BtwCoordinator {
+  +ask(request): Promise<Receipt>
+  +cancel(...): Promise<Result>
+  +watch(...): AsyncIterable<Frame>
+  -activeBySession
+  -idempotencyIndex
+}
+
+class LiveContextMirror {
+  +observeMainRequest(...)
+  +applyAssistantFrame(...)
+  +captureNow(...): ContextSnapshot
+}
+class SideContextNormalizer {
+  +normalize(snapshot, history, question)
+}
+class EphemeralBtwRunner {
+  +execute(sideMessages, signal)
+}
+
+BtwTopic "1" *-- "1..*" BtwTurn
+BtwTurn "1" o-- "0..1" ContextCut
+BtwTurn --> BtwTurnStatus
+BtwCoordinator --> BtwTopicRepository
+BtwCoordinator --> LiveContextMirror
+BtwCoordinator --> SideContextNormalizer
+BtwCoordinator --> EphemeralBtwRunner
+@enduml
