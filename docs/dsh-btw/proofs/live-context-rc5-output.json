@@ -1,0 +1,56 @@
+{
+  "ok": true,
+  "results": {
+    "assembler": "interruptedBlocks drops open ToolCall; blocks does not",
+    "retryCompaction": {
+      "attempts": [
+        "retry-compaction:1",
+        "retry-compaction:2"
+      ],
+      "requestCount": 2,
+      "finalHistory": [
+        "You are an AI agent powered by DeepSeek Harness.",
+        "compacted"
+      ],
+      "cutCount": 23
+    },
+    "openTool": {
+      "openTail": [
+        {
+          "type": "text",
+          "text": "before"
+        },
+        {
+          "type": "tool-call",
+          "id": "call-1",
+          "name": "hold",
+          "arguments": "{\"value\":1}"
+        }
+      ],
+      "finalRoles": [
+        "system",
+        "user",
+        "assistant",
+        "tool",
+        "assistant"
+      ]
+    },
+    "lateDisposal": {
+      "lateFrames": [
+        "chunk",
+        "end"
+      ],
+      "lateSessionEvents": [
+        "assistant/message",
+        "step/end",
+        "turn/end"
+      ],
+      "lateRequestCount": 0,
+      "disposal": [
+        "agent/disposed",
+        "session/disposed"
+      ],
+      "limitation": "late live prefix is only b; full interrupted committed content is ab"
+    }
+  }
+}
