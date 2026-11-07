@@ -41,6 +41,12 @@ function assertDeepFrozen(value) {
   for (const child of Object.values(value)) assertDeepFrozen(child)
 }
 
+function snapshotRequest(options) {
+  const facts = structuredClone({ ...options, signal: undefined })
+  delete facts.signal // capture request facts, never the main AbortSignal
+  return facts
+}
+
 function snapshotCut(session, live, extra = {}) {
   return deepFreeze({
     sessionId: session.id,
@@ -168,6 +174,8 @@ async function testRetryOrderingAndCompaction() {
     const attempts = []
     const cuts = []
     let current
+    let capturedRequest
+    let lastRevision = 0
 
     ctx.on('llm/stream', (options, next) => {
       if (options.sessionId !== session.id) return next()
@@ -175,10 +183,15 @@ async function testRetryOrderingAndCompaction() {
       assert.equal(isAgentLoopRequest(options), true)
       assert.equal(Object.isFrozen(options), true)
       assert.equal(Object.isFrozen(options.messages), true)
+      assertDeepFrozen(options.messages)
       assert.equal(isAgentLoopRequest(structuredClone({ ...options, signal: undefined })), false)
       assert.equal(options.provider, 'proof')
       assert.equal(options.model, 'proof')
-      requests.push(options)
+      capturedRequest = snapshotRequest(options)
+      assert.equal('signal' in capturedRequest, false)
+      assert.notEqual(capturedRequest.messages, options.messages)
+      assert.deepEqual(capturedRequest.messages, options.messages)
+      requests.push(capturedRequest)
       return next()
     })
     ctx.on('agent/request-error', ({ agent: subject, failure }) => {
@@ -198,10 +211,14 @@ async function testRetryOrderingAndCompaction() {
         assert.equal(current.step, event.data.step)
         current = undefined // prevents double-appending content before the committed end frame
       }
-      cuts.push(snapshotCut(session, current, { eventSeq: event.seq, eventType: event.type }))
+      cuts.push(snapshotCut(session, current, {
+        requestFacts: capturedRequest, eventSeq: event.seq, eventType: event.type,
+      }))
     })
     ctx.on('agent/assistant-stream', ({ agent: subject, frame }) => {
       if (subject !== agent) return
+      assert.equal(frame.revision, lastRevision + 1, 'revision is dense across the Agent lifecycle')
+      lastRevision = frame.revision
       if (frame.type === 'start') {
         trace.push('stream:start')
         assert.equal(current, undefined)
@@ -217,7 +234,7 @@ async function testRetryOrderingAndCompaction() {
         current.revision = frame.revision
         current.nextIndex++
         current.assembler.push(frame.chunk)
-        cuts.push(snapshotCut(session, current))
+        cuts.push(snapshotCut(session, current, { requestFacts: capturedRequest }))
       } else {
         trace.push(`stream:end:${frame.outcome.kind}`)
         assert.equal(frame.attemptId, current?.attemptId ?? attempts.at(-1).attemptId)
@@ -257,12 +274,14 @@ async function testRetryOrderingAndCompaction() {
 
     const liveCuts = cuts.filter((cut) => cut.liveContent?.length)
     assert.ok(liveCuts.length > 0)
+    assert.ok(liveCuts.every((cut) => cut.requestFacts?.sessionId === session.id
+      && !('signal' in cut.requestFacts)))
     assert.ok(liveCuts.every((cut) => cut.history.every((message) =>
       !JSON.stringify(message).includes('bad') && !JSON.stringify(message).includes('ok'))))
-    const held = JSON.stringify(cuts[0])
-    assertDeepFrozen(cuts[0])
+    const held = JSON.stringify(liveCuts[0])
+    assertDeepFrozen(liveCuts[0])
 
-    const beforeCompaction = snapshotCut(session)
+    const beforeCompaction = snapshotCut(session, undefined, { requestFacts: capturedRequest })
     const beforeCompactionHeld = JSON.stringify(beforeCompaction)
     const beforeGeneration = session.surface.contentGeneration
     const nodes = [...session.surface.nodes]
@@ -280,7 +299,7 @@ async function testRetryOrderingAndCompaction() {
     assert.deepEqual(session.deriveMessages().map((message) => message.role), ['system', 'user'])
     assert.equal(session.deriveMessages().at(-1).content[0].text, 'compacted')
     assert.equal(JSON.stringify(beforeCompaction), beforeCompactionHeld)
-    assert.equal(JSON.stringify(cuts[0]), held)
+    assert.equal(JSON.stringify(liveCuts[0]), held)
     assertDeepFrozen(beforeCompaction)
     return {
       attempts: attempts.map((attempt) => attempt.attemptId),
@@ -372,6 +391,7 @@ async function testLateMountAndDisposal() {
     const disposal = []
     let lateAssembler
     let latePrefix
+    let lateCut
     followup(agent, 'go')
     await firstChunk.promise
 
@@ -387,8 +407,16 @@ async function testLateMountAndDisposal() {
     })
     ctx.on('session/event', (session, event) => {
       if (session !== agent.session) return
+      assert.equal(session.seq, event.seq + 1)
       lateSessionEvents.push(event.type)
-      if (event.type === 'assistant/message') latePrefix = lateAssembler.interruptedBlocks()
+      if (event.type === 'assistant/message') {
+        latePrefix = lateAssembler.interruptedBlocks()
+        assert.equal(event.data.interrupted, true)
+        lateCut = snapshotCut(session, undefined, {
+          eventSeq: event.seq,
+          degraded: ['late-mount', 'missing-main-request', 'missing-attempt-prefix'],
+        })
+      }
     })
     ctx.on('agent/disposed', ({ agent: subject }) => {
       if (subject === agent) disposal.push('agent/disposed')
@@ -407,9 +435,12 @@ async function testLateMountAndDisposal() {
     assert.equal(lateRequests.length, 0, 'llm/stream is not replayed for a late listener')
     assert.equal(lateSessionEvents.includes('user/message'), false)
     assert.deepEqual(latePrefix, [{ type: 'text', text: 'b' }])
-    const interrupted = lateSessionEvents.includes('assistant/message')
-    assert.equal(interrupted, true)
-    assert.ok(lateSessionEvents.indexOf('assistant/message') >= 0)
+    assert.ok(lateCut)
+    assert.deepEqual(lateCut.history.at(-1).content, [{ type: 'text', text: 'ab' }])
+    assert.equal(lateCut.liveContent, undefined, 'degraded cut omits the unknowable live prefix')
+    assert.deepEqual(lateCut.degraded, ['late-mount', 'missing-main-request', 'missing-attempt-prefix'])
+    assert.equal('requestFacts' in lateCut, false)
+    assertDeepFrozen(lateCut)
     assert.equal(lateFrames.at(-1).outcome.kind, 'committed')
     assert.equal(lateFrames.at(-1).outcome.eventType, 'assistant/message')
     assert.deepEqual(disposal, ['agent/disposed', 'session/disposed'])
@@ -418,7 +449,9 @@ async function testLateMountAndDisposal() {
     return {
       lateFrames: lateFrames.map((frame) => frame.type),
       lateSessionEvents, lateRequestCount: lateRequests.length, disposal,
-      limitation: 'late live prefix is only b; full interrupted committed content is ab',
+      observedLatePrefix: latePrefix,
+      committedInterruptedContent: lateCut.history.at(-1).content,
+      degraded: lateCut.degraded,
     }
   } finally {
     releaseSecond.resolve()

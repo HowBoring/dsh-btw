@@ -33,9 +33,12 @@ For a loop-built request, `isAgentLoopRequest(options)` is true and the request/
 
 The marker is object identity in a module-local `WeakSet`: cloning a request produces ordinary data and returns false. It is not a durable or serializable property. Filter on both the marker and exact target `sessionId`.
 
+The proof's `snapshotRequest()` clones every request field except `signal`; `snapshotCut()` then freezes those `requestFacts` together with the history, cursor, and live blocks. Thus the exercised cut contains all three ticket-required fact classes without retaining the main AbortSignal.
+
 Sources:
 
-- rc.5 declaration: `/home/howboring/.local/share/fnm/node-versions/v26.7.0/installation/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai/dsh-llm/lib/types/index.d.ts:28-46`
+- rc.5 event declaration: `/home/howboring/.local/share/fnm/node-versions/v26.7.0/installation/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai/dsh-llm/lib/types/index.d.ts:28-46`
+- rc.5 `GenerateOptions`: `/home/howboring/.local/share/fnm/node-versions/v26.7.0/installation/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai/dsh-llm/lib/types/types.d.ts:506-547`
 - rc.5 implementation: `/home/howboring/.local/share/fnm/node-versions/v26.7.0/installation/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai/dsh-llm/lib/index.js:357-388,2393-2398`
 - pinned [`packages/llm/llm/src/call-config.ts:12-13,79-96`](https://github.com/deepseek-ai/deepseek-harness/blob/fcc0ad462172522aaf5c93a7b2e01f6b9f0b0159/packages/llm/llm/src/call-config.ts#L12-L96)
 - pinned [`packages/core/agent-loop/src/agent.ts:726-743`](https://github.com/deepseek-ai/deepseek-harness/blob/fcc0ad462172522aaf5c93a7b2e01f6b9f0b0159/packages/core/agent-loop/src/agent.ts#L726-L743)
@@ -61,7 +64,8 @@ Do not use `eventAt()`, `snapshotEvents()`, or `ownEvents()` for new BTW code: a
 
 Sources:
 
-- rc.5 declaration: `/home/howboring/.local/share/fnm/node-versions/v26.7.0/installation/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai/dsh-session/lib/types/index.d.ts:135-355`
+- rc.5 declaration: `/home/howboring/.local/share/fnm/node-versions/v26.7.0/installation/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai/dsh-session/lib/types/index.d.ts:50-61,135-355`
+- rc.5 Surface cursor: `/home/howboring/.local/share/fnm/node-versions/v26.7.0/installation/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai/dsh-session/lib/types/surface.d.ts:118-124`
 - rc.5 implementation: `/home/howboring/.local/share/fnm/node-versions/v26.7.0/installation/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai/dsh-session/lib/index.js:1517-1598,1672-1687`
 - pinned [`packages/core/session/src/index.ts:43-76`](https://github.com/deepseek-ai/deepseek-harness/blob/fcc0ad462172522aaf5c93a7b2e01f6b9f0b0159/packages/core/session/src/index.ts#L43-L76)
 - pinned [`Session.seq` and deprecated readers](https://github.com/deepseek-ai/deepseek-harness/blob/fcc0ad462172522aaf5c93a7b2e01f6b9f0b0159/packages/core/session/src/index.ts#L704-L762)
@@ -82,7 +86,7 @@ Create one `BlockAssembler` at `start`, feed every `chunk`, and retain its lates
 
 Sources:
 
-- rc.5 declarations: `/home/howboring/.local/share/fnm/node-versions/v26.7.0/installation/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai/dsh-agent/lib/types/runtime-types.d.ts:107-137,212-243`
+- rc.5 declarations: `/home/howboring/.local/share/fnm/node-versions/v26.7.0/installation/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai/dsh-agent/lib/types/runtime-types.d.ts:107-137,212-243,358-369`
 - rc.5 Attempt implementation: `/home/howboring/.local/share/fnm/node-versions/v26.7.0/installation/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai/dsh-agent-loop/lib/index.js:378-446`
 - rc.5 assembler: `/home/howboring/.local/share/fnm/node-versions/v26.7.0/installation/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai/dsh-llm/lib/index.js:954-1122`
 - pinned [`AssistantStreamFrame`](https://github.com/deepseek-ai/deepseek-harness/blob/fcc0ad462172522aaf5c93a7b2e01f6b9f0b0159/packages/core/agent/src/runtime-types.ts#L154-L188)
@@ -177,7 +181,7 @@ No inspected observation event replays missed data. The proof mounted listeners 
 - late `llm/stream` calls: `0`;
 - late stream frames: only chunk `b` and `end`;
 - late `session/event`: only `assistant/message`, `step/end`, `turn/end`;
-- an assembler started at the late chunk contained only `b`, while disposal committed the full interrupted text `ab`.
+- an assembler started at the late chunk contained only `b`, while the actual post-commit cut contained the full interrupted text `ab`, omitted `liveContent`/`requestFacts`, was deeply frozen, and recorded `late-mount`, `missing-main-request`, and `missing-attempt-prefix`.
 
 Therefore, if mounting while an Attempt is already in flight:
 
@@ -192,7 +196,12 @@ If settlement has already committed, current history includes the full Assistant
 
 - Installed package: `/home/howboring/.local/share/fnm/node-versions/v26.7.0/installation/lib/node_modules/@deepseek-ai/dsh/package.json`, version `0.2.1-rc.5`; it is an npm installation, not a git checkout.
 - Live Cordis inspection confirmed the rc.5 modes/signatures for `llm/stream`, `session/event`, `agent/assistant-stream`, `agent/disposed`, and `session/disposed` used above.
-- Pinned `deepseek-ai/deepseek-harness@fcc0ad462172522aaf5c93a7b2e01f6b9f0b0159` identifies package version `0.2.2-rc.1`. Its public observation semantics match the rc.5 findings. Its tool scheduler has internal refactoring; BTW must not depend on those internals.
+- Pinned `deepseek-ai/deepseek-harness@fcc0ad462172522aaf5c93a7b2e01f6b9f0b0159` identifies package version `0.2.2-rc.1` ([`package.json:1-9`](https://github.com/deepseek-ai/deepseek-harness/blob/fcc0ad462172522aaf5c93a7b2e01f6b9f0b0159/package.json#L1-L9)). The pinned [`llm/stream` signature](https://github.com/deepseek-ai/deepseek-harness/blob/fcc0ad462172522aaf5c93a7b2e01f6b9f0b0159/packages/llm/llm/src/index.ts#L57-L75), request marking/freezing, Session derivation/commit order, Assistant frames, and interrupted-block algorithm match the observation semantics above.
+- Exact rc.5-vs-pinned differences relevant to this ticket:
+  - **Auxiliary-purpose typing:** rc.5 has non-generic `GenerateOptions.purpose?: 'compaction' | 'session-title'` (`/home/howboring/.local/share/fnm/node-versions/v26.7.0/installation/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai/dsh-llm/lib/types/types.d.ts:506-547`). The pinned source adds augmentable `LlmRequestPurposeMap` and `GenerateOptions<Purpose extends string = LlmRequestPurpose>` ([`packages/llm/llm/src/types.ts:554-605`](https://github.com/deepseek-ai/deepseek-harness/blob/fcc0ad462172522aaf5c93a7b2e01f6b9f0b0159/packages/llm/llm/src/types.ts#L554-L605)). This does not change main-request observation, but it does change how a future side-call purpose can be typed.
+  - **Model-selection internals/API:** pinned adds `Agent.model` and passes a fixed selection through request preparation ([`runtime-types.ts:190-203`](https://github.com/deepseek-ai/deepseek-harness/blob/fcc0ad462172522aaf5c93a7b2e01f6b9f0b0159/packages/core/agent/src/runtime-types.ts#L190-L203), [`agent.ts:612-653`](https://github.com/deepseek-ai/deepseek-harness/blob/fcc0ad462172522aaf5c93a7b2e01f6b9f0b0159/packages/core/agent-loop/src/agent.ts#L612-L653)); rc.5 has neither (`/home/howboring/.local/share/fnm/node-versions/v26.7.0/installation/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai/dsh-agent/lib/types/runtime-types.d.ts:138-149`, `/home/howboring/.local/share/fnm/node-versions/v26.7.0/installation/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai/dsh-agent-loop/lib/index.js:1174-1189`). The proof does not rely on the newer API.
+  - **Tool-scheduler placement:** rc.5 schedules and appends calls/results inside `/home/howboring/.local/share/fnm/node-versions/v26.7.0/installation/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai/dsh-agent-loop/lib/index.js:506-707`; pinned delegates to `ToolsService.execute` ([`agent.ts:586-604`](https://github.com/deepseek-ai/deepseek-harness/blob/fcc0ad462172522aaf5c93a7b2e01f6b9f0b0159/packages/core/agent-loop/src/agent.ts#L586-L604)) and moves the same model-ordered commit logic into [`packages/core/tools/src/batch.ts:138-149,243-265`](https://github.com/deepseek-ai/deepseek-harness/blob/fcc0ad462172522aaf5c93a7b2e01f6b9f0b0159/packages/core/tools/src/batch.ts#L138-L265). Open-ToolCall history semantics therefore match, but scheduler internals are not compatible APIs.
+  - **Session write-lifecycle hardening:** pinned `append()` rejects store-owned writes outside a store or before creation announcement completes ([`packages/core/session/src/index.ts:806-884`](https://github.com/deepseek-ai/deepseek-harness/blob/fcc0ad462172522aaf5c93a7b2e01f6b9f0b0159/packages/core/session/src/index.ts#L806-L884)); rc.5 `publicationEntry()` only checks reentry (`/home/howboring/.local/share/fnm/node-versions/v26.7.0/installation/lib/node_modules/@deepseek-ai/dsh/node_modules/@deepseek-ai/dsh-session/lib/index.js:1517-1537,1568-1571`). This is a write-side mismatch, not a change to the post-commit `session/event`, cursor, or `deriveMessages()` contracts used here.
 - Source comparison against tag `dsh-v0.2.1-rc.2` found byte-identical `packages/core/agent-loop/src/assistant-stream.ts`, `packages/llm/llm/src/call-config.ts`, and `packages/llm/llm/src/assembler.ts` between rc.2 and the pinned commit. The `AssistantStreamFrame` contract is also unchanged. The runtime-types differences concern model selection and pre-step/request middleware, including the later `Agent.model` API; this research does not rely on `Agent.model`.
 - rc.2 was **not executed**. These source facts narrow compatibility risk but do not claim rc.2 runtime support. The target verified here is rc.5 only.
 
@@ -211,8 +220,8 @@ node docs/dsh-btw/proofs/live-context-rc5.mjs
 Final result: **exit 0**, JSON `"ok": true`. The proof covers:
 
 - `interruptedBlocks()` versus `blocks()` for an open ToolCall;
-- exact main-request marker, identity loss after clone, frozen options, provider/model/session/message facts;
-- start/chunk/end identity, lifecycle revisions, dense indices, terminal chunk counts;
+- exact main-request marker, identity loss after clone, deeply frozen messages, and detached/frozen `requestFacts` (without `signal`) in the same cuts as history and live content;
+- start/chunk/end identity, every lifecycle revision equaling the previous revision + 1, dense zero-based chunk indices, and terminal chunk counts;
 - session commit before committed stream end;
 - failed Attempt exclusion from history and the retry request;
 - immutable cuts across later appends and Surface replacement/compaction;
@@ -229,7 +238,7 @@ See [live-context-rc5-output.json](proofs/live-context-rc5-output.json) for the 
 - Compaction was exercised through the public Surface `replace` event contract, not through a production compaction plugin. A replacement Agent's revision/Attempt reset is established by the public contract/source, not by an end-to-end compaction run.
 - Provider-specific admission of reasoning, replay metadata, normalized open-tool history, and cache behavior remains unresolved and must be tested before side calls are enabled for that provider.
 - Product policy must decide how degraded late-mount cuts are displayed and when the degraded state clears. The safe default is to omit unrecoverable fields rather than estimate them.
-- `GenerateOptions.purpose` admits only `'compaction' | 'session-title'` in the inspected base declaration; a future `'btw'` side-call purpose requires module augmentation and provider/middleware verification. That is outside this observation proof.
+- rc.5 `GenerateOptions.purpose` admits only `'compaction' | 'session-title'`; unlike the pinned generic/map contract, this fixed interface property cannot be broadened to `'btw'` by ordinary declaration merging. A future side-call purpose needs a deliberately typed boundary (or the newer upstream contract) plus provider/middleware verification. That is outside this observation proof.
 
 ## Tracker scope
 

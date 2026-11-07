@@ -50,7 +50,23 @@
         "agent/disposed",
         "session/disposed"
       ],
-      "limitation": "late live prefix is only b; full interrupted committed content is ab"
+      "observedLatePrefix": [
+        {
+          "type": "text",
+          "text": "b"
+        }
+      ],
+      "committedInterruptedContent": [
+        {
+          "type": "text",
+          "text": "ab"
+        }
+      ],
+      "degraded": [
+        "late-mount",
+        "missing-main-request",
+        "missing-attempt-prefix"
+      ]
     }
   }
 }
