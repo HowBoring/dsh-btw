@@ -1,0 +1,29 @@
+ok installed purpose typing contract
+ok normalization fixtures
+ok interrupted assembler drops open tool calls
+ok deepseek rejects raw partial tool batch
+ok deepseek normalized idle
+ok deepseek normalized streaming
+ok deepseek normalized partialToolBatch
+ok deepseek normalized matchedToolPrefix
+ok deepseek normalized retry
+ok deepseek normalized compaction
+ok deepseek valid reasoning replay
+ok deepseek degrades unusable replay without signature
+ok deepseek rejects orphan tool result
+ok pi-ai normalized idle
+ok pi-ai normalized streaming
+ok pi-ai normalized partialToolBatch
+ok pi-ai normalized matchedToolPrefix
+ok pi-ai normalized retry
+ok pi-ai normalized compaction
+ok pi-ai valid reasoning replay
+ok pi-ai drops foreign replay reasoning
+ok pi-ai raw partial tool batch compatibility
+ok prepareCall independent identity and one-shot dispatch
+ok main sessionId triggers checkpoint and provider identity
+ok dsh-llm-retry does not retry direct side stream
+ok explicit bounded retry needs fresh prepareCall per attempt
+ok independent overall deadline aborts side fetch only
+ok session-log omission versus main identity
+PASS 28 checks on 0.2.1-rc.5

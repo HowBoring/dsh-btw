@@ -1,0 +1,647 @@
+{
+  "proof": "side-llm",
+  "results": [
+    {
+      "name": "installed purpose typing contract",
+      "version": "0.2.1-rc.5",
+      "purpose": "'compaction' | 'session-title'",
+      "augmentablePurposeMap": false
+    },
+    {
+      "name": "normalization fixtures",
+      "states": [
+        "idle",
+        "streaming",
+        "partialToolBatch",
+        "matchedToolPrefix",
+        "retry",
+        "compaction"
+      ],
+      "liveText": "Visible provisional answer"
+    },
+    {
+      "name": "interrupted assembler drops open tool calls",
+      "interrupted": [
+        {
+          "type": "text",
+          "text": "Visible provisional answer"
+        }
+      ]
+    },
+    {
+      "name": "deepseek rejects raw partial tool batch",
+      "code": "INVALID_REQUEST",
+      "message": "DeepSeek Messages tool calls need immediate results",
+      "networkCalls": 0
+    },
+    {
+      "name": "deepseek normalized idle",
+      "request": {
+        "stream": true,
+        "messages": [
+          {
+            "role": "user",
+            "content": [
+              {
+                "type": "text",
+                "text": "Main request"
+              }
+            ]
+          },
+          {
+            "role": "assistant",
+            "content": [
+              {
+                "type": "text",
+                "text": "Committed answer"
+              }
+            ]
+          },
+          {
+            "role": "user",
+            "content": [
+              {
+                "type": "text",
+                "text": "BTW question"
+              }
+            ]
+          }
+        ],
+        "max_tokens": 64,
+        "thinking": {
+          "type": "enabled"
+        },
+        "output_config": {
+          "effort": "high"
+        }
+      },
+      "purpose": "btw"
+    },
+    {
+      "name": "deepseek normalized streaming",
+      "request": {
+        "stream": true,
+        "messages": [
+          {
+            "role": "user",
+            "content": [
+              {
+                "type": "text",
+                "text": "Main request"
+              },
+              {
+                "type": "text",
+                "text": "Side observation (provisional; visible text only): Visible provisional answer\n\nBTW question"
+              }
+            ]
+          }
+        ],
+        "max_tokens": 64,
+        "thinking": {
+          "type": "enabled"
+        },
+        "output_config": {
+          "effort": "high"
+        }
+      },
+      "purpose": "btw"
+    },
+    {
+      "name": "deepseek normalized partialToolBatch",
+      "request": {
+        "stream": true,
+        "messages": [
+          {
+            "role": "user",
+            "content": [
+              {
+                "type": "text",
+                "text": "Start the main task."
+              },
+              {
+                "type": "text",
+                "text": "Side observation (uncommitted; not a tool result): the main attempt issued first and second. first completed with visible result \"first result committed\"; second is still open with no result. Do not infer completion.\n\nBTW question: What should happen next?"
+              }
+            ]
+          }
+        ],
+        "max_tokens": 64,
+        "thinking": {
+          "type": "enabled"
+        },
+        "output_config": {
+          "effort": "high"
+        }
+      },
+      "purpose": "btw"
+    },
+    {
+      "name": "deepseek normalized matchedToolPrefix",
+      "request": {
+        "stream": true,
+        "messages": [
+          {
+            "role": "user",
+            "content": [
+              {
+                "type": "text",
+                "text": "Start the main task."
+              }
+            ]
+          },
+          {
+            "role": "assistant",
+            "content": [
+              {
+                "type": "text",
+                "text": "Running two tools."
+              },
+              {
+                "type": "tool_use",
+                "id": "call-a",
+                "name": "first",
+                "input": {
+                  "value": 1
+                }
+              }
+            ]
+          },
+          {
+            "role": "user",
+            "content": [
+              {
+                "type": "tool_result",
+                "tool_use_id": "call-a",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "first result committed"
+                  }
+                ],
+                "is_error": false
+              },
+              {
+                "type": "text",
+                "text": "Side observation: the second call is still open and has no outcome. Do not infer completion.\n\nBTW question: What should happen next?"
+              }
+            ]
+          }
+        ],
+        "max_tokens": 64,
+        "thinking": {
+          "type": "enabled"
+        },
+        "output_config": {
+          "effort": "high"
+        }
+      },
+      "purpose": "btw"
+    },
+    {
+      "name": "deepseek normalized retry",
+      "request": {
+        "stream": true,
+        "messages": [
+          {
+            "role": "user",
+            "content": [
+              {
+                "type": "text",
+                "text": "Main request"
+              },
+              {
+                "type": "text",
+                "text": "Side observation (provisional): a retry is pending; failed transient output is not admitted.\n\nBTW question"
+              }
+            ]
+          }
+        ],
+        "max_tokens": 64,
+        "thinking": {
+          "type": "enabled"
+        },
+        "output_config": {
+          "effort": "high"
+        }
+      },
+      "purpose": "btw"
+    },
+    {
+      "name": "deepseek normalized compaction",
+      "request": {
+        "stream": true,
+        "messages": [
+          {
+            "role": "user",
+            "content": [
+              {
+                "type": "text",
+                "text": "Coherent compacted main-context summary"
+              }
+            ]
+          },
+          {
+            "role": "assistant",
+            "content": [
+              {
+                "type": "text",
+                "text": "Committed post-compaction answer"
+              }
+            ]
+          },
+          {
+            "role": "user",
+            "content": [
+              {
+                "type": "text",
+                "text": "BTW question"
+              }
+            ]
+          }
+        ],
+        "max_tokens": 64,
+        "thinking": {
+          "type": "enabled"
+        },
+        "output_config": {
+          "effort": "high"
+        }
+      },
+      "purpose": "btw"
+    },
+    {
+      "name": "deepseek valid reasoning replay",
+      "assistant": {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "thinking",
+            "thinking": "committed reasoning",
+            "signature": "proof-signature"
+          },
+          {
+            "type": "text",
+            "text": "committed answer"
+          }
+        ]
+      }
+    },
+    {
+      "name": "deepseek degrades unusable replay without signature",
+      "assistant": {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "thinking",
+            "thinking": "foreign reasoning"
+          },
+          {
+            "type": "text",
+            "text": "foreign answer"
+          }
+        ]
+      }
+    },
+    {
+      "name": "deepseek rejects orphan tool result",
+      "code": "INVALID_REQUEST",
+      "message": "DeepSeek Messages tool result has no matching call"
+    },
+    {
+      "name": "pi-ai normalized idle",
+      "request": {
+        "model": "proof-model",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Main request"
+          },
+          {
+            "role": "assistant",
+            "content": "Committed answer"
+          },
+          {
+            "role": "user",
+            "content": "BTW question"
+          }
+        ],
+        "stream": true,
+        "stream_options": {
+          "include_usage": true
+        },
+        "store": false,
+        "max_completion_tokens": 64
+      }
+    },
+    {
+      "name": "pi-ai normalized streaming",
+      "request": {
+        "model": "proof-model",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Main request"
+          },
+          {
+            "role": "user",
+            "content": "Side observation (provisional; visible text only): Visible provisional answer\n\nBTW question"
+          }
+        ],
+        "stream": true,
+        "stream_options": {
+          "include_usage": true
+        },
+        "store": false,
+        "max_completion_tokens": 64
+      }
+    },
+    {
+      "name": "pi-ai normalized partialToolBatch",
+      "request": {
+        "model": "proof-model",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Start the main task."
+          },
+          {
+            "role": "user",
+            "content": "Side observation (uncommitted; not a tool result): the main attempt issued first and second. first completed with visible result \"first result committed\"; second is still open with no result. Do not infer completion.\n\nBTW question: What should happen next?"
+          }
+        ],
+        "stream": true,
+        "stream_options": {
+          "include_usage": true
+        },
+        "store": false,
+        "max_completion_tokens": 64
+      }
+    },
+    {
+      "name": "pi-ai normalized matchedToolPrefix",
+      "request": {
+        "model": "proof-model",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Start the main task."
+          },
+          {
+            "role": "assistant",
+            "content": "Running two tools.",
+            "tool_calls": [
+              {
+                "id": "call-a",
+                "type": "function",
+                "function": {
+                  "name": "first",
+                  "arguments": "{\"value\":1}"
+                }
+              }
+            ]
+          },
+          {
+            "role": "tool",
+            "content": "first result committed",
+            "tool_call_id": "call-a"
+          },
+          {
+            "role": "user",
+            "content": "Side observation: the second call is still open and has no outcome. Do not infer completion.\n\nBTW question: What should happen next?"
+          }
+        ],
+        "stream": true,
+        "stream_options": {
+          "include_usage": true
+        },
+        "store": false,
+        "max_completion_tokens": 64,
+        "tools": []
+      }
+    },
+    {
+      "name": "pi-ai normalized retry",
+      "request": {
+        "model": "proof-model",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Main request"
+          },
+          {
+            "role": "user",
+            "content": "Side observation (provisional): a retry is pending; failed transient output is not admitted.\n\nBTW question"
+          }
+        ],
+        "stream": true,
+        "stream_options": {
+          "include_usage": true
+        },
+        "store": false,
+        "max_completion_tokens": 64
+      }
+    },
+    {
+      "name": "pi-ai normalized compaction",
+      "request": {
+        "model": "proof-model",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Coherent compacted main-context summary"
+          },
+          {
+            "role": "assistant",
+            "content": "Committed post-compaction answer"
+          },
+          {
+            "role": "user",
+            "content": "BTW question"
+          }
+        ],
+        "stream": true,
+        "stream_options": {
+          "include_usage": true
+        },
+        "store": false,
+        "max_completion_tokens": 64
+      }
+    },
+    {
+      "name": "pi-ai valid reasoning replay",
+      "assistant": {
+        "role": "assistant",
+        "content": "side answer",
+        "reasoning_content": "pi committed reasoning"
+      }
+    },
+    {
+      "name": "pi-ai drops foreign replay reasoning",
+      "assistant": {
+        "role": "assistant",
+        "content": "committed answer"
+      }
+    },
+    {
+      "name": "pi-ai raw partial tool batch compatibility",
+      "request": {
+        "model": "proof-model",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Start the main task."
+          },
+          {
+            "role": "assistant",
+            "content": "Running two tools.",
+            "tool_calls": [
+              {
+                "id": "call-a",
+                "type": "function",
+                "function": {
+                  "name": "first",
+                  "arguments": "{\"value\":1}"
+                }
+              },
+              {
+                "id": "call-b",
+                "type": "function",
+                "function": {
+                  "name": "second",
+                  "arguments": "{\"value\":2}"
+                }
+              }
+            ]
+          },
+          {
+            "role": "tool",
+            "content": "first result committed",
+            "tool_call_id": "call-a"
+          },
+          {
+            "role": "tool",
+            "content": "No result provided",
+            "tool_call_id": "call-b"
+          },
+          {
+            "role": "user",
+            "content": "What should happen next?"
+          }
+        ],
+        "stream": true,
+        "stream_options": {
+          "include_usage": true
+        },
+        "store": false,
+        "max_completion_tokens": 64,
+        "tools": []
+      },
+      "finish": {
+        "kind": "stop"
+      }
+    },
+    {
+      "name": "prepareCall independent identity and one-shot dispatch",
+      "maxTokens": 64,
+      "flushCalls": [],
+      "intercepted": {
+        "purpose": "btw",
+        "agentLoop": false
+      }
+    },
+    {
+      "name": "main sessionId triggers checkpoint and provider identity",
+      "flushCalls": [
+        "main-proof"
+      ],
+      "intercepted": {
+        "purpose": "btw",
+        "sessionId": "main-proof",
+        "agentLoop": false
+      }
+    },
+    {
+      "name": "dsh-llm-retry does not retry direct side stream",
+      "networkCalls": 1,
+      "configuredMaxRetries": 5
+    },
+    {
+      "name": "explicit bounded retry needs fresh prepareCall per attempt",
+      "maxAttempts": 3,
+      "retries": 2,
+      "outcomes": [
+        {
+          "kind": "error",
+          "failure": {
+            "message": "proof transient",
+            "code": "SERVER",
+            "status": 500
+          }
+        },
+        {
+          "kind": "error",
+          "failure": {
+            "message": "proof transient",
+            "code": "SERVER",
+            "status": 500
+          }
+        },
+        {
+          "kind": "error",
+          "failure": {
+            "message": "proof transient",
+            "code": "SERVER",
+            "status": 500
+          }
+        }
+      ]
+    },
+    {
+      "name": "independent overall deadline aborts side fetch only",
+      "reason": {
+        "kind": "aborted",
+        "failure": {
+          "message": "DeepSeek Messages request aborted",
+          "code": "ABORTED"
+        }
+      },
+      "sideCallerAborted": false,
+      "deadlineAborted": true,
+      "fetchAborted": true
+    },
+    {
+      "name": "session-log omission versus main identity",
+      "anonymousContribution": null,
+      "identifiedValue": {
+        "version": 1,
+        "sessionFormatVersion": 1,
+        "session": {
+          "version": 1,
+          "id": "main-proof",
+          "createdAt": "2026-01-01T00:00:00.000Z"
+        },
+        "afterSeq": -1,
+        "throughSeq": 0,
+        "events": [
+          {
+            "seq": 0,
+            "time": "2026-01-01T00:00:00.000Z",
+            "data": {},
+            "type": "user/message",
+            "surfaceOp": "append"
+          }
+        ]
+      },
+      "appended": [
+        {
+          "type": "session-log-deepseek/delivery-accepted",
+          "data": {
+            "sessionId": "main-proof",
+            "sessionFormatVersion": 1,
+            "throughSeq": 0
+          }
+        }
+      ]
+    }
+  ]
+}
