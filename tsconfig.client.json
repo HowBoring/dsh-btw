@@ -1,0 +1,4 @@
+{
+  "files": [],
+  "references": [{ "path": "./packages/dsh-btw/tsconfig.client.json" }]
+}

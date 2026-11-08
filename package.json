@@ -1,0 +1,11 @@
+{
+  "name": "dsh-btw-workspace",
+  "private": true,
+  "type": "module",
+  "workspaces": ["packages/*"],
+  "scripts": {
+    "build": "npm run build -w @deepseek-ai/dsh-btw",
+    "typecheck": "npm run typecheck -w @deepseek-ai/dsh-btw",
+    "test": "node --test packages/dsh-btw/test/*.test.mjs"
+  }
+}
