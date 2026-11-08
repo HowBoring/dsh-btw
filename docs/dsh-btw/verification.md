@@ -109,6 +109,7 @@ Slots, input-trigger claim, Remote transport, streaming, cancel and history.
 | History after page reload | both topics restored newest-first; selected topic's turns rendered |
 | Session switch | new Session showed `No side conversation yet`; the prior Session's topics were absent; cold-live ask degraded to `missing-main-request, late-mount` and answered from an empty snapshot |
 | Stop | a 300-word side request settled `cancelled` with no partial answer and no main interruption |
+| Host restart / cold read | after restarting the server (all Agents gone) the panel listed and rendered a persisted topic with no main prompt sent in that Session |
 | Leakage | no BTW question text in any `.tmp/dsh-home/storages/session_projcache/sessions/*.json`; main transcript unchanged |
 
 Two Client defects were found and fixed by this run:
