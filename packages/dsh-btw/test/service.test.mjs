@@ -125,7 +125,8 @@ test('ask returns an admission receipt and eventually a complete turn', async ()
   assert.equal(h.calls.length, 1)
 
   const streamOptions = h.calls[0].streamOptions
-  assert.equal(streamOptions.sessionId, undefined)
+  assert.match(streamOptions.sessionId, /^btw-/)
+  assert.notEqual(streamOptions.sessionId, 'session-1')
   assert.equal(streamOptions.purpose, undefined)
   assert.equal(streamOptions.tools, undefined)
   assert.ok(messageTexts(streamOptions)[0].includes('hello main'))

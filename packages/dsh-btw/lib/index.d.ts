@@ -109,6 +109,13 @@ declare function runSideCall(input: {
   readonly ctx: Context;
   readonly facts: MainRequestFacts;
   readonly normalized: NormalizedSideContext;
+  /**
+   * Scope id for provider routing headers only. It is deliberately not the
+   * main session id: providers that mandate a session header (for example
+   * opencode-go's `x-opencode-session`) get a per-turn synthetic identity so
+   * the side call cannot attach to the main conversation.
+   */
+  readonly identity: string;
   readonly signal: AbortSignal;
   readonly onDelta: (text: string) => void;
 }): Promise<SideRunResult>;

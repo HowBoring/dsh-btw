@@ -306,6 +306,7 @@ export class BtwService extends TypertRemoteService {
         ctx: this.ctx,
         facts,
         normalized,
+        identity: `btw-${active.turnId}`,
         signal,
         onDelta: (text) => this.hub(active.sessionId).publish({ type: 'delta', topicId: active.topicId, turnId: active.turnId, text }),
       })

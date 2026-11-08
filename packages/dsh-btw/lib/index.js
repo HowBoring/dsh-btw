@@ -305,6 +305,7 @@ async function runSideCall(input) {
 				...prepared.config,
 				messages: [...input.normalized.messages],
 				system: input.normalized.system,
+				sessionId: input.identity,
 				signal
 			});
 			let finish;
@@ -312,7 +313,11 @@ async function runSideCall(input) {
 				text += chunk.text;
 				input.onDelta(chunk.text);
 			} else if (chunk.type === "finish") finish = chunk.reason;
-			if (finish?.kind === "error") throw Object.assign(/* @__PURE__ */ new Error("side provider returned an error"), { failure: finish.failure });
+			if (finish?.kind === "error") {
+				const failure = finish.failure;
+				const status = failure.status === void 0 ? "" : ` (HTTP ${failure.status})`;
+				throw Object.assign(/* @__PURE__ */ new Error(`side provider returned an error: ${failure.code}${status}: ${failure.message}`), { failure });
+			}
 			if (finish?.kind === "aborted" || signal.aborted) return {
 				status: "cancelled",
 				text
@@ -766,6 +771,7 @@ let BtwService = (() => {
 					ctx: this.ctx,
 					facts,
 					normalized,
+					identity: `btw-${active.turnId}`,
 					signal,
 					onDelta: (text) => this.hub(active.sessionId).publish({
 						type: "delta",

@@ -54,7 +54,7 @@ function adapter(scripts, policy = POLICY) {
 
 const sideSignal = () => new AbortController()
 
-test('side call carries no sessionId, purpose, or tools', async () => {
+test('side call carries a synthetic identity but no purpose or tools', async () => {
   const { calls, llm } = adapter([() => streamOf(textChunk('OK'), stop())])
   const controller = sideSignal()
   const deltas = []
@@ -63,6 +63,7 @@ test('side call carries no sessionId, purpose, or tools', async () => {
     ctx: { llm },
     facts: FACTS,
     normalized: NORMALIZED,
+    identity: 'btw-test-turn',
     signal: controller.signal,
     onDelta: (text) => deltas.push(text),
   })
@@ -79,7 +80,7 @@ test('side call carries no sessionId, purpose, or tools', async () => {
   assert.equal(config.maxTokens, 4096)
 
   const options = calls[0].streamOptions
-  assert.equal(options.sessionId, undefined)
+  assert.equal(options.sessionId, 'btw-test-turn')
   assert.equal(options.purpose, undefined)
   assert.equal(options.tools, undefined)
   assert.deepEqual(options.messages, NORMALIZED.messages)
@@ -113,6 +114,7 @@ test('aborting the side signal cancels only the side call', async () => {
     ctx: { llm },
     facts: FACTS,
     normalized: NORMALIZED,
+    identity: 'btw-test-turn',
     signal: side.signal,
     onDelta: () => {},
   })
@@ -129,6 +131,7 @@ test('retryable failures retry with a fresh prepareCall; non-retryable codes do 
     ctx: { llm: retried.llm },
     facts: FACTS,
     normalized: NORMALIZED,
+    identity: 'btw-test-turn',
     signal: sideSignal().signal,
     onDelta: () => {},
   })
@@ -145,6 +148,7 @@ test('retryable failures retry with a fresh prepareCall; non-retryable codes do 
     ctx: { llm: fatal.llm },
     facts: FACTS,
     normalized: NORMALIZED,
+    identity: 'btw-test-turn',
     signal: sideSignal().signal,
     onDelta: () => {},
   })
@@ -164,6 +168,7 @@ test('no retry after partial text was already streamed', async () => {
     ctx: { llm },
     facts: FACTS,
     normalized: NORMALIZED,
+    identity: 'btw-test-turn',
     signal: sideSignal().signal,
     onDelta: (text) => deltas.push(text),
   })

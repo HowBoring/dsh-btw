@@ -11,12 +11,13 @@ builds/network).
 |---|---|---|
 | `npm run build` | pass | `packages/dsh-btw/lib/` contains `index.js`, `index.d.ts`, `types.js`, `types.d.ts`, `client.js`; `lib/client.js` begins with `window.__ModuleLoader__.load({ id: "@deepseek-ai/dsh-btw", ... })` |
 | `npm run typecheck` | pass (host + client) | `tsc -p tsconfig.host.json --noEmit && tsc -p tsconfig.client.json --noEmit` (`packages/dsh-btw/package.json`) |
-| `npm test` | pass — `tests 28, pass 28, fail 0` (~195 ms) | `node --test packages/dsh-btw/test/*.test.mjs`; files: `live`, `normalize`, `runner`, `repository`, `hub`, `service` |
+| `npm test` | pass — `tests 28, pass 28, fail 0` (~196 ms) | `node --test packages/dsh-btw/test/*.test.mjs`; files: `live`, `normalize`, `runner`, `repository`, `hub`, `service` |
 
 The suite is deterministic and offline. It covers live-prefix capture and attempt
 invalidation, provider-safe normalization (no fabricated tool result, matched
-batches only, truncation keeps newest), no `sessionId`/`purpose`/`tools` on side
-calls, independent-side abort, retry policy, repository keys/CAS/schema, hub
+batches only, truncation keeps newest), a synthetic `btw-<turnId>` identity and no
+`purpose`/`tools` on side calls, independent-side abort, retry policy, repository
+keys/CAS/schema, hub
 fan-out through `watch`, and service admission/follow/duplicate-`requestId`/
 cancel-before-dispatch/recovery/put-failure paths. `BtwHub` is not part of the
 package export surface, so its behavior is exercised through `BtwService.watch`.
@@ -92,7 +93,28 @@ The receipt/revision numbers are durable-record facts, not timing guarantees.
   bypassing the default sink, sidebar tab registration, no CLI no-log route.
 - Side-LLM protocol: `.tmp/side-llm-deliverables/docs/research/side-llm-provider-normalization.md`
   — 28-check offline wire proof for prepare/stream, abort isolation, one-shot calls,
-  no inherited retry, no session identity, and normalization.
+  no inherited retry, and normalization. (Live testing later proved that a synthetic
+  per-turn `sessionId` is required by opencode-go; see below.)
+
+## Live-profile regression: opencode-go requires a session header
+
+After installing into the live `web` profile, the first real asks failed with
+`side provider returned an error`. Widening the stored error to include
+`LlmFailure` produced the provider answer:
+
+```text
+side provider returned an error: INVALID_REQUEST (HTTP 400):
+{"type":"MissingSessionID","message":"Request is missing x-opencode-session ..."}
+```
+
+The `opencode-go` / `deepseek-v4.1-flash` route (the live profile default) maps
+`GenerateOptions.sessionId` to `x-opencode-session`; omitting it is a 400. The fix
+is a per-turn synthetic identity, `btw-<turnId>`: it satisfies the header without
+ever naming the main Session, and both `dsh-session-checkpoint-policy` and
+`dsh-session-log-deepseek` no-op because `ctx.sessions.get(id)` returns undefined.
+Re-running the late-mount probe on `opencode-go/deepseek-v4.1-flash` then returned
+`LATE-SIDE-OK` with `missing-main-request, late-mount`. Regression tests now assert
+the synthetic identity and that it differs from the main Session id.
 
 ## Real-browser end-to-end (2026-11-08)
 

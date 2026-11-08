@@ -15,6 +15,25 @@
 `btw/internal` means the storage Domain failed to initialize or closed
 (`src/service.ts:117-123`); check startup logs for the domain open error.
 
+## Side provider returned an error
+
+The turn stores the provider failure code, status, and message, for example:
+
+```text
+side provider returned an error: INVALID_REQUEST (HTTP 400):
+{"type":"MissingSessionID","message":"Request is missing x-opencode-session ..."}
+```
+
+`MissingSessionID` means the route (opencode-go) requires a session header and the
+installed build predates the synthetic `btw-<turnId>` identity. Rebuild the package
+and reload the Host plugin; the profile links the repo, so `npm run build` plus a
+plugin reload or Host restart is enough.
+
+Other codes follow the provider's retry policy: `RATE_LIMIT`, `SERVER`, `TIMEOUT`,
+`TRANSPORT`, and `EMPTY_RESPONSE` are retried up to three attempts total; a failure
+after partial text is never retried. Authentication and invalid-request codes
+surface immediately.
+
 ## Panel is empty
 
 - No topic exists yet for this Session: ask a question. Empty is not an error.

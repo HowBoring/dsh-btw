@@ -36,9 +36,13 @@ Rules:
 4. **Token bounds.** `maxTokens = min(facts.maxTokens ?? 4096, 4096)`
    (`src/runner.ts:63-69`). Input is bounded separately by the normalizer.
 5. **At most 3 attempts** (2 retries).
-6. **No identity, no purpose, no tools.** Do not pass `sessionId`, `purpose`,
-   `tools`, `toolHistory`, or `stop` to the side request. The implementation passes
-   only the prepared config plus `messages`, `system`, and `signal`.
+6. **Synthetic identity, no purpose, no tools.** Pass a per-turn routing identity
+   as `sessionId` (`btw-<turnId>`), never the main Session id: opencode-go rejects
+   requests without an `x-opencode-session` header (`INVALID_REQUEST` /
+   `MissingSessionID`). The id resolves to no live Session, so the checkpoint flush,
+   DeepSeek log upload, and `delivery-accepted` append do not run. Do not pass
+   `purpose`, `tools`, `toolHistory`, or `stop`; the implementation passes the
+   prepared config plus `messages`, `system`, a synthetic `sessionId`, and `signal`.
 7. **Controls copied from the main request.** `provider`, `model`,
    `reasoningEffort`, `temperature`, and `maxTokens` come from the observed main
    `llm/stream` facts. The late-mount fallback (`agent.options`) copies
@@ -77,7 +81,7 @@ as `cancelled`, not `error`.
 | Field | Value | Reason |
 |---|---|---|
 | `provider` / `model` | copied from main request facts | same route as the observed main call |
-| `sessionId` | **omitted** | avoids checkpoint flush, main log upload/accept append, affinity/cache entanglement; no conversation continuation exists |
+| `sessionId` | **`btw-<turnId>`** (synthetic) | providers such as opencode-go require a session header; the id matches no live Session, so checkpoint flush and session-log upload skip; the main Session id is never sent |
 | `purpose` | **omitted** | rc.5 union is closed; `'btw'` is not typeable |
 | `tools` / `toolHistory` | **omitted** | text-only side answer; nothing may execute |
 | `signal` | BTW-owned deadline fused with the turn signal | independent cancellation and timeout |
@@ -118,7 +122,7 @@ trades some structural fidelity for a request shape both adapters accept.
 | Reasoning replay | `thinking` + signature only for the same model with a valid `deepseek-messages` v1 replay; foreign model degrades to unsigned `thinking` | Replays only for the same api/provider/model/baseUrl; otherwise dropped entirely; on the anthropic route unsigned thinking can become **visible text** |
 | `stop` sequences | Supported (`stop_sequences`) | **Unsupported** — throws `UNSUPPORTED_OPTION` |
 | Max-tokens field | `max_tokens` | `max_completion_tokens` (unless compat overrides) |
-| `sessionId` set | Adds `x-deepseek-harness-session-id`, flushes the Session before dispatch, uploads the log and appends `delivery-accepted` | Adds affinity headers / `prompt_cache_key` only for openai.com or long retention; no continuation |
+| `sessionId` set | Stamps `x-deepseek-harness-session-id`; flush and upload happen only when the id resolves to a live Session (a synthetic `btw-` id does not) | openCode maps it to the required `x-opencode-session` header; other routes use it only for affinity/cache metadata |
 | Abort | Caller signal + idle watchdog `MESSAGES_IDLE` | `idleWatchdog` `PI_AI_IDLE`; SDK `maxRetries: 0` |
 
 Both routes are used through the same runner; normalization is the intersection that

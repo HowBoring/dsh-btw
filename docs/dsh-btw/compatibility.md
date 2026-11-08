@@ -69,7 +69,7 @@ generator would emit. Host dispatch still uses the runtime `@Remote` decorators 
 | Rule | Why |
 |---|---|
 | `purpose` is omitted | rc.5 types it as the closed union `'compaction' \| 'session-title'`; `'btw'` cannot be added by declaration merging (TS2717) and a cast would lie |
-| `sessionId` omitted | avoids the main Session checkpoint flush, DeepSeek session-log upload + `delivery-accepted` append, and provider affinity/cache entanglement; neither adapter supports conversation continuation |
+| `sessionId` is synthetic (`btw-<turnId>`) | opencode-go requires an `x-opencode-session` header; the id matches no live Session, so the main checkpoint flush, DeepSeek session-log upload, and `delivery-accepted` append do not run; the main Session id is never sent |
 | reasoning stripped | DeepSeek replays `thinking` only with a valid same-model signature; pi-ai drops or (on anthropic) can surface unsigned thinking as **visible text** |
 | no tools / `toolHistory` | BTW answers are text-only and must not execute anything |
 | tool history flattened to text | an open/unpaired batch is rejected by DeepSeek (four `INVALID_REQUEST` shapes) and silently patched with a synthetic "No result provided" error by pi-ai; BTW emits a plain-text note instead of a fabricated result |

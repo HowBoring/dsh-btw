@@ -1,5 +1,6 @@
 import type { Context } from '@deepseek-ai/cordis'
 import type { LlmCallConfig, ResolvedRetryPolicy, StreamChunk } from '@deepseek-ai/dsh-llm'
+import type { SessionId } from '@deepseek-ai/dsh-session/types'
 import type { NormalizedSideContext } from './normalize.ts'
 import type { MainRequestFacts } from './live.ts'
 
@@ -51,6 +52,13 @@ export async function runSideCall(input: {
   readonly ctx: Context
   readonly facts: MainRequestFacts
   readonly normalized: NormalizedSideContext
+  /**
+   * Scope id for provider routing headers only. It is deliberately not the
+   * main session id: providers that mandate a session header (for example
+   * opencode-go's `x-opencode-session`) get a per-turn synthetic identity so
+   * the side call cannot attach to the main conversation.
+   */
+  readonly identity: string
   readonly signal: AbortSignal
   readonly onDelta: (text: string) => void
 }): Promise<SideRunResult> {
@@ -81,6 +89,7 @@ export async function runSideCall(input: {
         ...prepared.config,
         messages: [...input.normalized.messages],
         system: input.normalized.system,
+        sessionId: input.identity as SessionId,
         signal,
       })
       let finish: Extract<StreamChunk, { type: 'finish' }>['reason'] | undefined
@@ -92,7 +101,14 @@ export async function runSideCall(input: {
           finish = chunk.reason
         }
       }
-      if (finish?.kind === 'error') throw Object.assign(new Error('side provider returned an error'), { failure: finish.failure })
+      if (finish?.kind === 'error') {
+        const failure = finish.failure
+        const status = failure.status === undefined ? '' : ` (HTTP ${failure.status})`
+        throw Object.assign(
+          new Error(`side provider returned an error: ${failure.code}${status}: ${failure.message}`),
+          { failure },
+        )
+      }
       if (finish?.kind === 'aborted' || signal.aborted) return { status: 'cancelled', text }
       if (!finish && !text) throw Object.assign(new Error('side provider returned no content'), { failure: { code: 'EMPTY_RESPONSE' } })
       return { status: 'complete', text }
